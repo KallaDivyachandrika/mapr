@@ -107,7 +107,7 @@ res = g.find("(a)-[]->(b); (b)-[]->(c); !(a)-[]->(c)") \
 res = res.filter("a.id != c.id").select("a.id", "a.education_school_id", "a.education_year_id",
         "c.id", "c.education_school_id", "c.education_year_id") 
 print "count: %d" % res.count()
-res.show(5)
+res.show(25)
 
 # finally do a page rank on the graph
 print "page rank"
