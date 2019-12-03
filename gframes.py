@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Dec  3 10:49:49 2019
+
+@author: KallaD
+"""
+
 from graphframes import *
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SQLContext
@@ -6,6 +13,7 @@ from pyspark.sql import functions as F
 from pyspark.sql import Row
 import re
 
+
 sc = SparkContext()
 sqlContext = SQLContext(sc)
 peopleids = [0, 107, 1684, 1912, 3437, 348, 3980, 414, 686, 698]
@@ -13,6 +21,7 @@ featids = ["id", "birthday", "hometown_id", "work_employer_id",
     "education_school_id", "education_year_id" ]
 formatter = 'com.databricks.spark.csv'
 vtx = Row(*featids)
+
 
 # load the entire edge and node set into a Spark DataFrame
 edf = sqlContext.read.format(formatter).options(delimiter=' ', \
@@ -91,16 +100,17 @@ print "edge count: %d" % edf.count()
 g = GraphFrame(vdf, edf)
 
 # find all connected vertices with the same birthday identifier
-print "same birthdays"
-res = g.find("(a)-[]->(b)") \
-         .filter(featurematch("a.birthday", "b.birthday"))
-print "count: %d" % res.count()
-res.select("a.id", "a.birthday", "b.id", "b.birthday").show(5)
+#print "same birthdays"
+#res = g.find("(a)-[]->(b)") \
+#         .filter(featurematch("a.birthday", "b.birthday"))
+#print "count: %d" % res.count()
+#res.select("a.id", "a.birthday", "b.id", "b.birthday").show(5)
 
 # find "friends of friends" who are not connected to us, but graduated the same
 # year from the same school
-print "same class"
-res = g.find("(a)-[]->(b); (b)-[]->(c); !(a)-[]->(c)") \
+print "Mutual Friends:"
+
+res = g.find("(a)-[]->(b); (b)-[]->(c); (a)-[]->(c)") \
          .filter("%s and %s" % \
                  (featurematch("a.education_school_id", "c.education_school_id"), \
                  featurematch("a.education_year_id", "c.education_year_id")))
@@ -109,9 +119,19 @@ res = res.filter("a.id != c.id").select("a.id", "a.education_school_id", "a.educ
 print "count: %d" % res.count()
 res.show(25)
 
+#print "same class"
+#res = g.find("(a)-[]->(b); (b)-[]->(c); !(a)-[]->(c)") \
+#         .filter("%s and %s" % \
+#                 (featurematch("a.education_school_id", "c.education_school_id"), \
+#                 featurematch("a.education_year_id", "c.education_year_id")))
+#res = res.filter("a.id != c.id").select("a.id", "a.education_school_id", "a.education_year_id",
+#        "c.id", "c.education_school_id", "c.education_year_id") 
+#print "count: %d" % res.count()
+#res.show(25)
+
 # finally do a page rank on the graph
-print "page rank"
-g.pageRank(resetProbability=0.15, tol=0.01).vertices.sort(
-    	    'pagerank', ascending=False).show(5)
+#print "page rank"
+#g.pageRank(resetProbability=0.15, tol=0.01).vertices.sort(
+#    	    'pagerank', ascending=False).show(5)
 
 print "done"
